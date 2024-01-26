@@ -1,0 +1,43 @@
+version: "3.8"
+
+name: ollama-locally
+
+services:
+  chatgpt:
+    container_name: chatgpt
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      DEFAULT_MODEL: llama2
+      OLLAMA_HOST: http://ollama:11434
+    image: ghcr.io/ivanfioravanti/chatbot-ollama:main
+    networks:
+      - ollama_locally
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  ollama:
+    container_name: ollama
+    environment:
+      OLLAMA_MODELS: /ollama/models
+    expose:
+      - "11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    image: ollama/ollama:latest
+    networks:
+      - ollama_locally
+    restart: unless-stopped
+    volumes:
+      - ollama_models:/ollama/models
+
+networks:
+  ollama_locally:
+
+volumes:
+  ollama_models:
